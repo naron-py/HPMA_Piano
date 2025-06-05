@@ -16,6 +16,33 @@ from dataclasses import dataclass
 from typing import List, Dict, Set, Tuple, Optional
 from music21 import converter, note, chord, meter, tempo, key, dynamics, expressions, clef, stream
 
+SONGS_DIR = os.path.join(os.path.dirname(__file__), "songs")
+
+
+def _print_table(headers: List[str], rows: List[List[str]]) -> None:
+    """Print rows of data in a simple ASCII table."""
+    if not rows:
+        return
+
+    widths = [len(str(h)) for h in headers]
+    for row in rows:
+        for i, cell in enumerate(row):
+            if i >= len(widths):
+                widths.append(len(str(cell)))
+            else:
+                widths[i] = max(widths[i], len(str(cell)))
+
+    top_border = "+" + "+".join("-" * (w + 2) for w in widths) + "+"
+    header_line = "| " + " | ".join(str(h).ljust(widths[i]) for i, h in enumerate(headers)) + " |"
+    header_border = "+" + "+".join("=" * (w + 2) for w in widths) + "+"
+
+    print(top_border)
+    print(header_line)
+    print(header_border)
+    for row in rows:
+        print("| " + " | ".join(str(cell).ljust(widths[i]) for i, cell in enumerate(row)) + " |")
+    print(top_border)
+
 def list_and_select_mxl_file(directory=None):
     """
     Scans the directory for MXL files, lists them, and prompts user to select one.
@@ -25,19 +52,36 @@ def list_and_select_mxl_file(directory=None):
         directory = r"c:\Users\domef\OneDrive\Desktop\HPMA_Piano\mxl"
     
     print(f"\n--- Available MXL Files in '{directory}' ---")
-    
+
     # Find all MXL files
     mxl_pattern = os.path.join(directory, "*.mxl")
-    mxl_files = glob.glob(mxl_pattern)
-    
+    mxl_files = sorted(glob.glob(mxl_pattern))
+
     if not mxl_files:
         print(f"No .mxl files found in '{directory}'.")
         return None
-    
-    # Display the list of MXL files
-    for i, mxl_file in enumerate(mxl_files):
+
+    rows = []
+    songs_dir = SONGS_DIR
+
+    for i, mxl_file in enumerate(mxl_files, 1):
         filename = os.path.basename(mxl_file)
-        print(f"[{i+1}] {filename}")
+        bpm = "?"
+        ts = "?"
+        try:
+            score = converter.parse(mxl_file)
+            meta = extract_musical_metadata(score)
+            bpm = meta.get("tempo_bpm", "?")
+            ts = meta.get("time_signature", "?")
+        except Exception:
+            pass
+
+        txt_name = os.path.splitext(filename)[0] + ".txt"
+        txt_path = os.path.join(songs_dir, txt_name)
+        exists = "Yes" if os.path.exists(txt_path) else "No"
+        rows.append([i, filename, bpm, ts, exists])
+
+    _print_table(["No.", "Song Name", "BPM", "Time Sig", "Converted"], rows)
     
     while True:
         choice = input("Enter the number of the MXL file to convert (or 'q' to quit): ").strip().lower()
