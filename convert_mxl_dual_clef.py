@@ -16,20 +16,32 @@ from dataclasses import dataclass
 from typing import List, Dict, Set, Tuple, Optional
 from music21 import converter, note, chord, meter, tempo, key, dynamics, expressions, clef, stream
 
+SONGS_DIR = os.path.join(os.path.dirname(__file__), "songs")
+
 
 def _print_table(headers: List[str], rows: List[List[str]]) -> None:
-    """Utility function to nicely print a table of data."""
-    widths = [len(h) for h in headers]
+    """Print rows of data in a simple ASCII table."""
+    if not rows:
+        return
+
+    widths = [len(str(h)) for h in headers]
     for row in rows:
         for i, cell in enumerate(row):
-            widths[i] = max(widths[i], len(str(cell)))
+            if i >= len(widths):
+                widths.append(len(str(cell)))
+            else:
+                widths[i] = max(widths[i], len(str(cell)))
 
-    header_line = " | ".join(h.ljust(widths[i]) for i, h in enumerate(headers))
-    divider = "-+-".join("-" * widths[i] for i in range(len(headers)))
+    top_border = "+" + "+".join("-" * (w + 2) for w in widths) + "+"
+    header_line = "| " + " | ".join(str(h).ljust(widths[i]) for i, h in enumerate(headers)) + " |"
+    header_border = "+" + "+".join("=" * (w + 2) for w in widths) + "+"
+
+    print(top_border)
     print(header_line)
-    print(divider)
+    print(header_border)
     for row in rows:
-        print(" | ".join(str(cell).ljust(widths[i]) for i, cell in enumerate(row)))
+        print("| " + " | ".join(str(cell).ljust(widths[i]) for i, cell in enumerate(row)) + " |")
+    print(top_border)
 
 def list_and_select_mxl_file(directory=None):
     """
@@ -50,7 +62,7 @@ def list_and_select_mxl_file(directory=None):
         return None
 
     rows = []
-    songs_dir = os.path.join(directory, "songs")
+    songs_dir = SONGS_DIR
 
     for i, mxl_file in enumerate(mxl_files, 1):
         filename = os.path.basename(mxl_file)
