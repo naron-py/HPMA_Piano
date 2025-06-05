@@ -16,32 +16,7 @@ from dataclasses import dataclass
 from typing import List, Dict, Set, Tuple, Optional
 from music21 import converter, note, chord, meter, tempo, key, dynamics, expressions, clef, stream
 
-SONGS_DIR = os.path.join(os.path.dirname(__file__), "songs")
-
-
-def _print_table(headers: List[str], rows: List[List[str]]) -> None:
-    """Print rows of data in a simple ASCII table."""
-    if not rows:
-        return
-
-    widths = [len(str(h)) for h in headers]
-    for row in rows:
-        for i, cell in enumerate(row):
-            if i >= len(widths):
-                widths.append(len(str(cell)))
-            else:
-                widths[i] = max(widths[i], len(str(cell)))
-
-    top_border = "+" + "+".join("-" * (w + 2) for w in widths) + "+"
-    header_line = "| " + " | ".join(str(h).ljust(widths[i]) for i, h in enumerate(headers)) + " |"
-    header_border = "+" + "+".join("=" * (w + 2) for w in widths) + "+"
-
-    print(top_border)
-    print(header_line)
-    print(header_border)
-    for row in rows:
-        print("| " + " | ".join(str(cell).ljust(widths[i]) for i, cell in enumerate(row)) + " |")
-    print(top_border)
+from table_utils import SONGS_DIR, print_table
 
 def list_and_select_mxl_file(directory=None):
     """
@@ -81,7 +56,7 @@ def list_and_select_mxl_file(directory=None):
         exists = "Yes" if os.path.exists(txt_path) else "No"
         rows.append([i, filename, bpm, ts, exists])
 
-    _print_table(["No.", "Song Name", "BPM", "Time Sig", "Converted"], rows)
+    print_table(["No.", "Song Name", "BPM", "Time Sig", "Converted"], rows)
     
     while True:
         choice = input("Enter the number of the MXL file to convert (or 'q' to quit): ").strip().lower()

@@ -15,31 +15,9 @@ except ImportError as e:
 
 from enhanced_music_player import EnhancedMusicPlayer
 from music_file_parser import parse_music_file
+from table_utils import SONGS_DIR, print_table
 
 
-def _print_table(headers, rows):
-    """Print a list of rows in an ASCII table."""
-    if not rows:
-        return
-
-    widths = [len(str(h)) for h in headers]
-    for row in rows:
-        for i, cell in enumerate(row):
-            if i >= len(widths):
-                widths.append(len(str(cell)))
-            else:
-                widths[i] = max(widths[i], len(str(cell)))
-
-    top_border = "+" + "+".join("-" * (w + 2) for w in widths) + "+"
-    header_line = "| " + " | ".join(str(h).ljust(widths[i]) for i, h in enumerate(headers)) + " |"
-    header_border = "+" + "+".join("=" * (w + 2) for w in widths) + "+"
-
-    print(top_border)
-    print(header_line)
-    print(header_border)
-    for row in rows:
-        print("| " + " | ".join(str(cell).ljust(widths[i]) for i, cell in enumerate(row)) + " |")
-    print(top_border)
 
 
 def _get_song_metadata(file_path):
@@ -62,10 +40,7 @@ def _get_song_metadata(file_path):
         pass
     return tempo, time_sig
 
-# Define the directory where your song .txt files will be stored
-SONGS_DIR = "songs"
-
-
+# SONGS_DIR constant imported from table_utils
 def has_musical_metadata(file_path):
     """Check if the given text file contains musical metadata headers."""
     try:
@@ -111,7 +86,7 @@ def list_and_select_song():
         bpm, ts = _get_song_metadata(os.path.join(SONGS_DIR, song_name))
         rows.append([i, song_name, bpm, ts])
 
-    _print_table(["No.", "Song Name", "BPM", "Time Sig"], rows)
+    print_table(["No.", "Song Name", "BPM", "Time Sig"], rows)
 
     while True:
         choice = input("Enter the number of the song to play (or 'q' to quit): ").strip().lower()
